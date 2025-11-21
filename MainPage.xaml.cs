@@ -1,4 +1,5 @@
 ﻿using MauiWithPrism.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MauiWithPrism
 {
@@ -7,7 +8,7 @@ namespace MauiWithPrism
 		public MainPage()
 		{
 			InitializeComponent();
-			BindingContext = new MainViewModel();
+			BindingContext = MauiProgram.ServiceProvider.GetRequiredService<MainViewModel>();
 		}
 	}
 }
