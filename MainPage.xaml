@@ -26,9 +26,9 @@
                 SemanticProperties.Description="Welcome to dot net Multi platform App U I with MVVM" />
             
             <Button
-                Text="Update Message"
-                Command="{Binding UpdateMessageCommand}"
-                SemanticProperties.Hint="Updates the message"
+                Text="Click Me"
+                Command="{Binding IncrementCounterCommand}"
+                SemanticProperties.Hint="Increments the counter"
                 HorizontalOptions="Fill" />
         </VerticalStackLayout>
     </ScrollView>
