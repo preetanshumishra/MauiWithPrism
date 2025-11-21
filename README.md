@@ -1,6 +1,21 @@
 # MauiWithPrism
 
-A .NET MAUI mobile application demonstrating MVVM (Model-View-ViewModel) architecture with Dependency Injection and clean architecture principles.
+A .NET MAUI mobile application demonstrating MVVM (Model-View-ViewModel) architecture with Service Locator pattern for Dependency Injection.
+
+## Overview
+
+This project showcases an alternative approach to building cross-platform mobile applications with .NET MAUI. It demonstrates:
+
+- **MVVM Pattern Implementation**: Clean separation between UI (View), presentation logic (ViewModel), and data (Model)
+- **Service Locator Pattern**: Static ServiceProvider for flexible service resolution throughout the application
+- **Source Generators**: Uses Community Toolkit's MVVM source generators for minimal boilerplate code
+- **Counter Application**: Interactive demo showing state management and command binding
+- **Refactored Architecture**: Optimized codebase with removed redundant code and unnecessary platforms
+
+This is one of three demonstration projects comparing different MVVM frameworks:
+- **MauiWithMvvm** - Community Toolkit MVVM with constructor injection (recommended approach)
+- **MauiWithPrism** (this project) - Service locator pattern with static ServiceProvider
+- **MauiWithMvvmCross** - MvvmCross enterprise framework integration
 
 ## Features
 
