@@ -1,17 +1,32 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MauiWithPrism.ViewModels;
+using Prism.Ioc;
 
 namespace MauiWithPrism
 {
-	public partial class App
+	public partial class App : global::Prism.Maui.PrismApplication
 	{
-		public App()
+		public App() : base()
 		{
-			InitializeComponent();
 		}
 
-		protected override Window CreateWindow(IActivationState? activationState)
+		protected override void RegisterTypes(IContainerRegistry containerRegistry)
 		{
-			return new Window(MauiProgram.ServiceProvider.GetRequiredService<AppShell>());
+			// Register pages and ViewModels for Prism navigation
+			containerRegistry.RegisterForNavigation<AppShell>();
+			containerRegistry.RegisterForNavigation<MainPage, MainViewModel>();
+		}
+
+		protected override void OnInitialized()
+		{
+			InitializeComponent();
+
+			// Navigate to main page using Prism navigation service
+			NavigationService.NavigateAsync("MainPage");
+		}
+
+		protected override Window CreateWindow(IActivationState activationState)
+		{
+			return base.CreateWindow(activationState);
 		}
 	}
 }

@@ -1,14 +1,13 @@
 ﻿using MauiWithPrism.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MauiWithPrism
 {
 	public partial class MainPage : ContentPage
 	{
-		public MainPage()
+		public MainPage(MainViewModel viewModel)
 		{
 			InitializeComponent();
-			BindingContext = MauiProgram.ServiceProvider.GetRequiredService<MainViewModel>();
+			BindingContext = viewModel;
 		}
 	}
 }

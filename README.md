@@ -1,36 +1,81 @@
 # MauiWithPrism
 
-A .NET MAUI sample demonstrating MVVM using service locator pattern dependency injection with `Microsoft.Extensions.DependencyInjection`. This project illustrates an alternative approach to MVVM in .NET MAUI by using a static `ServiceProvider` for global service access.
+A .NET MAUI sample project demonstrating the **Prism MVVM framework** with .NET 8.0. This project implements actual Prism architecture with dependency injection and navigation services.
+
+## ⚠️ Current Status: BLOCKED - Prism Incompatibility Issue
+
+**This project contains a complete Prism implementation but CANNOT COMPILE due to incomplete .NET 8 support in Prism 9.0.537.**
+
+### The Problem
+
+**Prism.Core 9.0.537 does NOT have a .NET 8.0 build.**
+
+```
+Prism.Core 9.0.537 Available Targets:
+✅ net462
+✅ net47
+✅ net6.0
+✅ netstandard2.0
+❌ net8.0  ← MISSING
+
+Build Error:
+error CS0234: The type or namespace name 'Maui' does not exist
+in the namespace 'Prism'
+```
+
+### Dependency Chain Breakdown
+
+```
+Your Project (net8.0-android/ios)
+    ↓ requires
+Prism.Maui 9.0.537 (has net8.0 build ✅)
+    ↓ depends on
+Prism.Core 9.0.537 (NO net8.0 build ❌)
+    ↓ falls back to net6.0
+Compiler cannot resolve types → BUILD FAILS
+```
+
+### Root Cause
+
+- Prism 9.0.537 released August 2024 claims ".NET 8 Support"
+- PR #3043 ("Add net8.0 target to Prism.Core") was abandoned/not merged
+- MAUI platform-specific libraries have net8.0 builds
+- Core dependency Prism.Core was never built for net8.0
+- **Incomplete implementation leaves Prism incompatible with .NET 8**
+
+---
 
 ## Overview
 
-MauiWithPrism demonstrates **the service locator approach to MVVM** in .NET MAUI:
-- **Service Locator Pattern** - Static `ServiceProvider` for dependency resolution
-- **Microsoft.Extensions.DependencyInjection** - Modern DI framework
-- **Simple Bootstrapping** - Easy setup for sample applications
-- **Global Service Access** - Access services from anywhere without constructor injection
-- **Community Toolkit MVVM** - Modern MVVM attributes and source generators
+MauiWithPrism demonstrates **Prism MVVM framework architecture** for .NET MAUI:
+- **PrismApplication** - Framework-based Application class
+- **RegisterTypes()** - Service registration and page/ViewModel mapping
+- **NavigationService** - Prism navigation integration
+- **Container Registry** - Dependency injection via Prism container
+- **Constructor Injection** - Pages receive dependencies via constructors
 
-> **Note**: While named "WithPrism", this project uses Microsoft.Extensions.DependencyInjection with a service locator pattern rather than the Prism framework itself. This approach works well for samples and demos.
+> **Note**: Code implementation is complete and architecturally correct, but project cannot compile due to Prism.Core .NET 8 incompatibility.
+
+---
 
 ## Project Structure
 
 ```
 MauiWithPrism/
-├── MauiProgram.cs                    # DI setup with static ServiceProvider
-├── App.xaml / App.xaml.cs           # Global resources & styling
-├── AppShell.xaml / AppShell.xaml.cs  # Shell-based navigation
-├── MainPage.xaml / MainPage.xaml.cs  # Main UI page
+├── MauiProgram.cs                    # Prism configuration (.UsePrism())
+├── App.xaml / App.xaml.cs           # PrismApplication with RegisterTypes()
+├── AppShell.xaml / AppShell.xaml.cs  # Prism navigation shell
+├── MainPage.xaml / MainPage.xaml.cs  # Constructor injection example
 │
 ├── ViewModels/
-│   ├── BaseViewModel.cs              # Base with IsBusy, Title
+│   ├── BaseViewModel.cs              # MVVM base class
 │   └── MainViewModel.cs              # Counter demo
 │
 ├── Resources/
 │   ├── Styles/
 │   │   ├── Colors.xaml               # Color palette
-│   │   └── Styles.xaml               # 20+ control styles
-│   ├── Images/ / Fonts/ / AppIcon/
+│   │   └── Styles.xaml               # Control styles
+│   ├── Images/, Fonts/, AppIcon/
 │   └── Splash/
 │
 └── Platforms/
@@ -42,202 +87,202 @@ MauiWithPrism/
         └── MainApplication.cs
 ```
 
+---
+
 ## Tech Stack
 
-| Component | Version | Purpose |
-|-----------|---------|---------|
-| **.NET** | 10.0 | Runtime framework |
-| **.NET MAUI** | 10.0.10 | Cross-platform UI |
-| **Community Toolkit MVVM** | 8.4.0 | MVVM generators |
-| **Microsoft.Extensions.DependencyInjection** | 10.0.0 | DI container |
-| **Target Platforms** | iOS 15.0+, Android 21+ | Supported platforms |
+| Component | Version | Purpose | Status |
+|-----------|---------|---------|--------|
+| **.NET** | 8.0.417 | Runtime framework | ✅ Works |
+| **.NET MAUI** | 8.0.100 | Cross-platform UI | ✅ Compatible |
+| **Prism.DryIoc.Maui** | 9.0.537 | MVVM framework | ⚠️ Incomplete |
+| **Prism.Core** | 9.0.537 | Core dependency | ❌ No net8.0 |
+| **Community Toolkit MVVM** | 8.4.0 | MVVM helpers | ✅ Compatible |
+| **Target Platforms** | iOS 12.0+, Android 21+ | Platforms | ✅ Configured |
+
+---
 
 ## Architecture
 
-### Service Locator Pattern
-
-Uses a static `ServiceProvider` for global service access:
+### Prism Application Setup
 
 ```csharp
-public static class MauiProgram
+public partial class App : PrismApplication
 {
-    public static IServiceProvider ServiceProvider { get; private set; } = null!;
-
-    public static MauiApp CreateMauiApp()
+    public App() : base()
     {
-        var services = new ServiceCollection();
-        services.AddSingleton<AppShell>();
-        services.AddSingleton<MainPage>();
-        services.AddSingleton<MainViewModel>();
+    }
 
-        var app = builder.Build();
-        ServiceProvider = app.Services;  // Store globally
-        return app;
+    protected override void RegisterTypes(IContainerRegistry containerRegistry)
+    {
+        // Register pages and ViewModels for Prism navigation
+        containerRegistry.RegisterForNavigation<AppShell>();
+        containerRegistry.RegisterForNavigation<MainPage, MainViewModel>();
+    }
+
+    protected override void OnInitialized()
+    {
+        InitializeComponent();
+        // Use Prism NavigationService
+        NavigationService.NavigateAsync("MainPage");
+    }
+
+    protected override Window CreateWindow(IActivationState activationState)
+    {
+        return base.CreateWindow(activationState);
     }
 }
 ```
 
-### Service Resolution in Views
+### Constructor Injection Pattern
+
+Pages receive ViewModels via constructor injection (Prism handles resolution):
 
 ```csharp
 public partial class MainPage : ContentPage
 {
-    public MainPage()
+    public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
-        // Resolve from global ServiceProvider
-        BindingContext = MauiProgram.ServiceProvider.GetService<MainViewModel>();
+        BindingContext = viewModel;  // Prism automatically constructs with ViewModel
     }
 }
 ```
 
-### MVVM Implementation
+### MVVM with Community Toolkit
 
-**BaseViewModel**:
-- Inherits from `ObservableObject` (Community Toolkit)
-- Provides `IsBusy` and `Title` properties
-- Base for all ViewModels
-
-**MainViewModel**:
-- `[ObservableProperty]` for automatic notifications
-- `[RelayCommand]` for automatic command generation
-- Counter and message properties
-
-### Key Differences: Service Locator vs Constructor Injection
-
-| Aspect | Service Locator | Constructor Injection |
-|--------|-----------------|----------------------|
-| **Dependency Visibility** | Hidden | Explicit |
-| **Testability** | Lower | Higher |
-| **Simplicity** | More simple | More setup |
-| **Best For** | Samples, demos | Production apps |
-| **Coupling** | Tight | Loose |
-
-## Key Features
-
-- **Service Locator Pattern** - Global access to registered services
-- **Observable Properties** - Via `[ObservableProperty]` attributes
-- **Relay Commands** - Via `[RelayCommand]` attributes
-- **Theme Support** - Light/dark themes with `AppThemeBinding`
-- **Responsive Design** - Mobile-first layouts
-- **Accessibility** - Semantic properties
-- **Cross-Platform** - iOS and Android support
-
-## Quick Start
-
-### Prerequisites
-- .NET 10.0 SDK
-- Xcode 15+ (iOS)
-- Android SDK 21+ (Android)
-
-### Build & Run
-
-```bash
-dotnet restore
-dotnet build
-
-# iOS Simulator
-dotnet run -f net10.0-ios
-
-# Android Emulator
-dotnet run -f net10.0-android
-
-# Production build
-dotnet publish -f net10.0-ios -c Release
-dotnet publish -f net10.0-android -c Release
-```
-
-## MVVM Examples
-
-### Observable Properties
 ```csharp
-[ObservableProperty]
-private int counter = 0;
-
-[ObservableProperty]
-private string message = "Click me";
-```
-
-### Relay Commands
-```csharp
-[RelayCommand]
-private void IncrementCounter()
+public partial class MainViewModel : BaseViewModel
 {
-    Counter++;
-    Message = $"Clicked {Counter} times";
+    [ObservableProperty]
+    private string message = "Welcome to MAUI with Prism!";
+
+    [ObservableProperty]
+    private int counter;
+
+    [RelayCommand]
+    private void IncrementCounter()
+    {
+        Counter++;
+        Message = Counter == 1
+            ? "Clicked 1 time"
+            : $"Clicked {Counter} times";
+    }
 }
 ```
 
-### XAML Binding
-```xml
-<Label Text="{Binding Message}" />
-<Button Command="{Binding IncrementCounterCommand}" />
+---
+
+## Quick Start (Prerequisites)
+
+### System Requirements
+- .NET 8.0.417 SDK (or later)
+- MAUI workloads installed: `dotnet workload install maui`
+- Xcode 15+ (iOS)
+- Android SDK 21+ (Android)
+
+### Build Attempt
+```bash
+cd /Users/preetanshumishra/Projects/MauiWithPrism
+dotnet clean
+dotnet restore
+dotnet build  # ❌ Will fail with CS0234 error
 ```
 
-## Styling
-
-**Color Palette** (`Resources/Styles/Colors.xaml`):
-- **Primary**: #512BD4 (Purple)
-- **Secondary**: #DFD8F7 (Light Purple)
-- **Tertiary**: #2B0B98 (Dark Purple)
-- **Grayscale**: Gray100-Gray950
-
-**Theme Support**:
-```xml
-<AppThemeBinding Light="White" Dark="#1F1F1F" />
+### Expected Error
+```
+error CS0234: The type or namespace name 'Maui' does not exist
+in the namespace 'Prism'
 ```
 
-## Extending the Project
+---
 
-### Adding Services
+## How to Fix This Issue
 
-1. Define service interface
-2. Implement the service
-3. Register in `MauiProgram.cs`:
-   ```csharp
-   services.AddSingleton<IMyService, MyService>();
-   ```
-4. Resolve in views:
-   ```csharp
-   var service = MauiProgram.ServiceProvider.GetService<IMyService>();
-   ```
+### Option 1: Wait for Prism 10.x (Recommended)
+- Prism team is actively working on .NET 8 compatibility
+- Newer version should have complete net8.0 support across all packages
+- Timeline unknown
 
-### Adding ViewModels
+### Option 2: Build Prism from Source
+1. Clone Prism repository: `https://github.com/PrismLibrary/Prism.git`
+2. Add `<TargetFrameworks>` with net8.0 to Prism.Core.csproj
+3. Build locally and reference custom build
 
-1. Create class inheriting from `BaseViewModel`
-2. Use `[ObservableProperty]` and `[RelayCommand]`
-3. Register in `MauiProgram.cs`
-4. Resolve in code-behind
+### Option 3: Use .NET 10
+- Switch TargetFrameworks to `net10.0-android;net10.0-ios`
+- Prism works correctly on .NET 10
+- Trade-off: Not using latest stable LTS framework
 
-## Best Practices
+### Option 4: Use Standard MAUI + Constructor Injection
+- Remove Prism packages
+- Use Microsoft.Extensions.DependencyInjection
+- Implement manual DI in MauiProgram
+- See `MauiWithMvvm` project for example
 
-1. ✅ Register services once in `MauiProgram.cs`
-2. ✅ Use `GetRequiredService` for mandatory services
-3. ✅ Handle null returns from `GetService` gracefully
-4. ✅ Document service dependencies clearly
-5. ✅ Avoid circular dependencies
-6. ✅ Use meaningful names for services
-7. ✅ Keep service registration organized
+---
 
-## When to Use This Pattern
+## Key Prism Features (In Code But Not Runnable)
 
-**Good for**:
-- Sample projects
-- Proof of concepts
-- Simple applications
-- Learning MVVM
+✅ **Implemented in code:**
+- PrismApplication base class
+- Service container registration via RegisterTypes()
+- Page/ViewModel mapping in container
+- NavigationService integration
+- Constructor injection for pages
+- Global.json pins .NET 8.0.417
 
-**Consider alternatives for**:
-- Large production apps
-- Complex dependencies
-- High testability requirements
-- Enterprise systems
+❌ **Cannot execute due to:**
+- Prism.Core.dll cannot be loaded for net8.0
+- C# compiler cannot resolve Prism.Maui types
+- Dependency resolution fails at compile time
 
-## Resources
+---
 
-- [Microsoft.Extensions.DependencyInjection](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection)
-- [Community Toolkit MVVM](https://learn.microsoft.com/en-us/windows/communitytoolkit/mvvm/)
-- [.NET MAUI](https://learn.microsoft.com/en-us/dotnet/maui/)
+## Related Projects
+
+| Project | Pattern | Framework | Status |
+|---------|---------|-----------|--------|
+| **MauiWithMvvm** | Constructor Injection | .NET 10 MAUI | ✅ Works |
+| **MauiWithPrism** | Prism Framework | .NET 8 | ⚠️ Blocked |
+| **MauiWithMvvCross** | MvvmCross Framework | .NET 10 MAUI | ✅ Works |
+| **MauiThemeSample** | XAML Theming | .NET 10 MAUI | ✅ Works |
+
+---
+
+## Resources & References
+
+- [Prism Library GitHub](https://github.com/PrismLibrary/Prism)
+- [Prism .NET 8 Issues](https://github.com/PrismLibrary/Prism/issues?q=.NET+8)
+- [Prism PR #3043 (Abandoned)](https://github.com/PrismLibrary/Prism/pull/3043) - "Add net8.0 target to Prism.Core"
+- [.NET MAUI Documentation](https://learn.microsoft.com/en-us/dotnet/maui/)
+- [Prism Documentation](https://prismlibrary.com/)
+
+---
+
+## Development Notes
+
+### What Works
+- All Prism code architecture is implemented correctly
+- .NET 8 MAUI framework integration
+- ViewModels and pages set up for injection
+- Navigation registration in place
+
+### What's Broken
+- Compilation fails due to Prism.Core missing net8.0
+- Assembly resolution cannot find Prism.Maui types at compile time
+- Cannot test or run the application
+
+### Investigation Summary
+
+**Findings (Feb 5, 2026):**
+1. Prism.DryIoc.Maui 9.0.537 has net8.0-android34.0 and net8.0-ios17.5 builds
+2. Prism.Core 9.0.537 only has net462, net47, net6.0, netstandard2.0
+3. This breaks the dependency chain
+4. PR #3043 to add net8.0 to Prism.Core was abandoned
+5. Prism team is actively working on other .NET 8 issues but this core issue remains unresolved
+
+---
 
 ## License
 
