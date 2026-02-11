@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-ios</TargetFrameworks>
+		<TargetFrameworks>net10.0-android;net10.0-ios</TargetFrameworks>
 
 		<OutputType>Exe</OutputType>
 		<RootNamespace>MauiWithPrism</RootNamespace>
@@ -10,8 +10,9 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
-		<!-- Suppress workload warnings for .NET 8 MAUI -->
+		<!-- Suppress workload warnings for .NET MAUI -->
 		<MSBuildWarningsAsMessages>NETSDK1202;NETSDK1135</MSBuildWarningsAsMessages>
+		<AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
 
 		<!-- Display name -->
 		<ApplicationTitle>MauiWithPrism</ApplicationTitle>
@@ -47,9 +48,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
-		<PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.100" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.30" />
+		<PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.30" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="Prism.DryIoc.Maui" Version="9.0.537" />
 	</ItemGroup>
 

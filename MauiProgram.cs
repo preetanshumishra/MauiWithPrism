@@ -1,4 +1,6 @@
-﻿namespace MauiWithPrism
+﻿using MauiWithPrism.ViewModels;
+
+namespace MauiWithPrism
 {
 	public static class MauiProgram
 	{
@@ -6,7 +8,14 @@
 		{
 			return MauiApp.CreateBuilder()
 				.UseMauiApp<App>()
-				.UsePrism()
+				.UsePrism(new DryIocContainerExtension(), prism =>
+				{
+					prism.RegisterTypes(containerRegistry =>
+					{
+						containerRegistry.RegisterForNavigation<MainPage, MainViewModel>();
+					});
+					prism.CreateWindow("MainPage");
+				})
 				.ConfigureFonts(fonts =>
 				{
 					fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
